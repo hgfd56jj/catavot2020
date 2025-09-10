@@ -227,9 +227,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         os.remove("output.mp3")
         os.remove("output.wav")
 
-from keep_alive import keep_alive
-keep_alive()
-
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(MessageHandler(filters.ALL & (~filters.COMMAND), handle_message))
 
