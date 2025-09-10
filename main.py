@@ -3,6 +3,7 @@ import json
 import subprocess
 import requests
 import base64
+import uuid
 from datetime import datetime
 import pytz
 import asyncio
@@ -28,7 +29,7 @@ except Exception as e:
 # 🛠 משתנים מ־Render
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 YMOT_TOKEN = os.getenv("YMOT_TOKEN")
-YMOT_PATH = os.getenv("YMOT_PATH", "ivr2:/988")
+YMOT_PATH = os.getenv("YMOT_PATH", "ivr2:/97")
 
 # 🔢 המרת מספרים לעברית
 def num_to_hebrew_words(hour, minute):
@@ -132,6 +133,63 @@ def convert_to_wav(input_file, output_file='output.wav'):
         output_file, '-y'
     ])
 
+def upload_large_to_ymot(file_path):
+    """העלאת קובץ גדול (מעל 20MB) לימות המשיח בחלקים"""
+    url = "https://call2all.co.il/ym/api/UploadFile"
+    file_size = os.path.getsize(file_path)
+    chunk_size = 4 * 1024 * 1024  # 4MB
+    total_parts = (file_size + chunk_size - 1) // chunk_size
+    qquuid = str(uuid.uuid4())
+    filename = os.path.basename(file_path)
+
+    with open(file_path, "rb") as f:
+        for part_index in range(total_parts):
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            offset = part_index * chunk_size
+
+            files = {
+                "qqfile": (filename, chunk, "application/octet-stream")
+            }
+            data = {
+                "token": YMOT_TOKEN,
+                "path": YMOT_PATH,
+                "convertAudio": "1",
+                "autoNumbering": "true",
+                "qquuid": qquuid,
+                "qqpartindex": part_index,
+                "qqpartbyteoffset": offset,
+                "qqchunksize": len(chunk),
+                "qqtotalparts": total_parts,
+                "qqtotalfilesize": file_size,
+                "qqfilename": filename,
+                "uploader": "yemot-admin"
+            }
+            resp = requests.post(url, data=data, files=files)
+            print(f"📤 חלק {part_index+1}/{total_parts} הועלה:", resp.text)
+
+    # ✅ אחרי כל החלקים → קריאה לסיום
+    done_data = {
+        "token": YMOT_TOKEN,
+        "path": YMOT_PATH,
+        "convertAudio": "1",
+        "autoNumbering": "true",
+        "qquuid": qquuid,
+        "qqfilename": filename,
+        "qqtotalfilesize": file_size,
+        "qqtotalparts": total_parts,
+    }
+    done_resp = requests.post(url + "?done", data=done_data)
+    print("✅ סיום העלאה:", done_resp.text)
+
+
+def upload_to_ymot(wav_file_path):
+    """העלאת קובץ רגיל או גדול לימות המשיח"""
+    file_size = os.path.getsize(wav_file_path)
+    if file_size > 20 * 1024 * 1024:  # מעל 20MB → מעבר לפיצול
+        print("⚠️ קובץ גדול – משתמש בהעלאה בחלקים...")
+        return upload_large_to_ymot(wav_file_path)
 def upload_to_ymot(wav_file_path):
     url = 'https://call2all.co.il/ym/api/UploadFile'
     with open(wav_file_path, 'rb') as f:
