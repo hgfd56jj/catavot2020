@@ -29,6 +29,7 @@ except Exception as e:
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 YMOT_TOKEN = os.getenv("YMOT_TOKEN")
 YMOT_PATH = os.getenv("YMOT_PATH", "ivr2:/97")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # 🔹 חובה להגדיר ברנדר
 
 # 🔢 המרת מספרים לעברית
 def num_to_hebrew_words(hour, minute):
@@ -188,31 +189,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 from keep_alive import keep_alive
 keep_alive()
 
+# ✅ כאן רק webhook – בלי set_webhook נוסף
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(MessageHandler(filters.ALL & (~filters.COMMAND), handle_message))
 
 print("🚀 הבוט מאזין בערוץ דרך Webhook 🎧")
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
-
-# 🟡 רישום אוטומטי של Webhook מול טלגרם
-import requests
-def set_webhook():
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook"
-    webhook_url = f"{WEBHOOK_URL}/webhook"
-    resp = requests.get(url, params={"url": webhook_url})
-    print("📡 setWebhook response:", resp.text)
-
-set_webhook()
-
-# 🟡 הרצה ב־Webhook
 app.run_webhook(
     listen="0.0.0.0",
     port=int(os.environ.get("PORT", 8080)),
     url_path="webhook",
     webhook_url=f"{WEBHOOK_URL}/webhook"
 )
-
-
-
