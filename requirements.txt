@@ -2,3 +2,4 @@ python-telegram-bot[webhooks]==20.8
 google-cloud-texttospeech
 pytz
 requests
+anyio
