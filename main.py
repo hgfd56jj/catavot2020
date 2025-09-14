@@ -196,11 +196,21 @@ print("🚀 הבוט מאזין בערוץ דרך Webhook 🎧")
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
-# הרצה ב־Webhook (רק השרת מאזין)
+# 🟡 רישום אוטומטי של Webhook מול טלגרם
+import requests
+def set_webhook():
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook"
+    webhook_url = f"{WEBHOOK_URL}/webhook"
+    resp = requests.get(url, params={"url": webhook_url})
+    print("📡 setWebhook response:", resp.text)
+
+set_webhook()
+
+# 🟡 הרצה ב־Webhook
 app.run_webhook(
     listen="0.0.0.0",
     port=int(os.environ.get("PORT", 8080)),
-    url_path="webhook",   # נתיב נקי
+    url_path="webhook",
     webhook_url=f"{WEBHOOK_URL}/webhook"
 )
 
