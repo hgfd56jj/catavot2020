@@ -193,13 +193,16 @@ app.add_handler(MessageHandler(filters.ALL & (~filters.COMMAND), handle_message)
 
 print("🚀 הבוט מאזין בערוץ דרך Webhook 🎧")
 
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # לדוגמה: https://my-bot.onrender.com
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
-# הרצה ב־Webhook
+# הרצה ב־Webhook (רק השרת מאזין)
 app.run_webhook(
-    listen="0.0.0.0",       # האזנה לכל הכתובות
-    port=int(os.environ.get("PORT", 8080)),  # Render נותן PORT
-    url_path=BOT_TOKEN,     # טלגרם יקרא לכתובת https://.../<TOKEN>
-    webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}"  # ה־URL שטלגרם יקבל
+    listen="0.0.0.0",
+    port=int(os.environ.get("PORT", 8080)),
+    url_path="webhook",   # נתיב נקי
+    webhook_url=f"{WEBHOOK_URL}/webhook"
 )
+
+
 
