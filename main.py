@@ -29,7 +29,7 @@ except Exception as e:
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 YMOT_TOKEN = os.getenv("YMOT_TOKEN")
 YMOT_PATH = os.getenv("YMOT_PATH", "ivr2:/97")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # 🔹 חובה להגדיר ברנדר
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")  # 🔹 חובה להגדיר ברנדר
 
 # 🔢 המרת מספרים לעברית
 def num_to_hebrew_words(hour, minute):
@@ -186,16 +186,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         os.remove("output.mp3")
         os.remove("output.wav")
 
-# ✅ כאן רק webhook – בלי set_webhook נוסף
+from keep_alive import keep_alive
+keep_alive()
+
+# ✅ Webhook נקי – בלי Updater או Flask
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(MessageHandler(filters.ALL & (~filters.COMMAND), handle_message))
 
-print("🚀 הבוט מאזין דרך Webhook 🎧")
+print("🚀 הבוט מאזין בערוץ דרך Webhook 🎧")
 
 app.run_webhook(
     listen="0.0.0.0",
     port=int(os.environ.get("PORT", 8080)),
-    url_path="",            # שים לב! שורש האתר
+    url_path="",            # 🔹 נתיב ריק → root /
     webhook_url=WEBHOOK_URL
 )
-
