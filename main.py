@@ -193,11 +193,12 @@ keep_alive()
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(MessageHandler(filters.ALL & (~filters.COMMAND), handle_message))
 
-print("🚀 הבוט מאזין בערוץ דרך Webhook 🎧")
+print("🚀 הבוט מאזין דרך Webhook 🎧")
 
 app.run_webhook(
     listen="0.0.0.0",
     port=int(os.environ.get("PORT", 8080)),
-    url_path="webhook",
-    webhook_url=f"{WEBHOOK_URL}/webhook"
+    url_path="",            # שים לב! שורש האתר
+    webhook_url=WEBHOOK_URL
 )
+
